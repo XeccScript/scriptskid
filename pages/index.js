@@ -15,9 +15,21 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ script }),
       })
-      const data = await res.json()
-      if (res.ok) setUrl(base + '/api/raw/' + data.id)
-      else alert(data.error || 'failed')
+
+      // Safe JSON parsing
+      let data
+      try {
+        data = await res.json()
+      } catch {
+        const text = await res.text()
+        throw new Error(text || 'Invalid JSON response from server')
+      }
+
+      if (res.ok) {
+        setUrl(base + '/api/raw/' + data.id)
+      } else {
+        alert(data.error || 'Failed to create script')
+      }
     } catch (e) {
       alert(e.message)
     } finally {
@@ -60,7 +72,6 @@ export default function Home() {
               <div style={{ marginBottom: 8, color: '#cbd5e1' }}>
                 Raw URL (works only via HTTP request with required header):
               </div>
-              {/* ✅ Clickable link */}
               <a href={url} target="_blank" rel="noopener noreferrer" style={styles.link}>
                 {url}
               </a>
